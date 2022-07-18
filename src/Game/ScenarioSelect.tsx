@@ -1,7 +1,7 @@
-import { Box, Button, Container, Flex, Grid, GridItem, useDisclosure } from "@chakra-ui/react";
+import { Box, Button, Container, Flex, Grid, GridItem } from "@chakra-ui/react";
 
-import { Modal, ModalBody, ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay } from '@chakra-ui/react';
-import { useState } from "react";
+import { Popover, PopoverArrow, PopoverBody, PopoverCloseButton, PopoverContent, PopoverHeader, PopoverTrigger } from "@chakra-ui/react";
+
 
 interface Scenario {
     name: string;
@@ -10,22 +10,6 @@ interface Scenario {
 }
 
 export const ScenarioSelect = () => {
-
-    const [selectedOverview, setSelectedOverview] = useState<Scenario>({
-        name: '',
-        level: 0,
-        overview: '',
-    });
-
-    const openModalOverview = (props: Scenario) => {
-        setSelectedOverview({
-            name: props.name,
-            level: props.level,
-            overview: props.overview,
-        });
-        onOpen();
-    };
-
     const scenarioList: Scenario[] = [
         {
             name: '始まりの原野',
@@ -39,24 +23,22 @@ export const ScenarioSelect = () => {
         },
     ];
 
-    const { isOpen, onOpen, onClose } = useDisclosure();
-
-    const ModalComponent = () => {
+    const PopoverComponent = (scenario: any) => {
         return (
-            <Modal isOpen={isOpen} onClose={onClose}>
-                <ModalOverlay />
-                <ModalContent>
-                    <ModalHeader>{selectedOverview.name}</ModalHeader>
-                    <ModalCloseButton />
-                    <ModalBody>
-                        <p>推奨レベル:{selectedOverview.level}</p>
-                        <p>{selectedOverview.overview}</p>
-                    </ModalBody>
-                    <ModalFooter>
-                        <Button colorScheme="gray" onClick={onClose}>閉じる</Button>
-                    </ModalFooter>
-                </ModalContent>
-            </Modal>
+            <Popover>
+                <PopoverTrigger>
+                    <Button colorScheme="green" variant="outline">詳細</Button>
+                </PopoverTrigger>
+                <PopoverContent>
+                    <PopoverArrow />
+                    <PopoverCloseButton />
+                    <PopoverHeader>{scenario.props.name}</PopoverHeader>
+                    <PopoverBody>
+                        <p>推奨レベル:{scenario.props.level}</p>
+                        <p>{scenario.props.overview}</p>
+                    </PopoverBody>
+                </PopoverContent>
+            </Popover>
         );
     };
 
@@ -71,9 +53,7 @@ export const ScenarioSelect = () => {
                                     {item.name}
                                 </Box>
                                 <Box width="120px">
-                                    <Button colorScheme="green" variant="outline" onClick={
-                                        () => openModalOverview(
-                                            { name: item.name, level: item.level, overview: item.overview })}>詳細</Button>
+                                    <PopoverComponent props={item} />
                                 </Box>
                                 <Box width="120px">
                                     <Button colorScheme="blue">出発</Button>
@@ -83,7 +63,6 @@ export const ScenarioSelect = () => {
                     );
                 })}
             </Grid >
-            <ModalComponent />
         </Container >
     );
 };
