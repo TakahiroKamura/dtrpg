@@ -1,12 +1,10 @@
 import { Box, Center, Container, Tab, TabList, TabPanel, TabPanels, Tabs } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
 import { CharaCreate } from './CharaCreate';
 import { EditParty } from './EditParty';
 import { ScenarioSelect } from './ScenarioSelect';
+import { Setting } from './Setting';
 
 export const BaseCamp = () => {
-    const navigation = useNavigate();
-
     return (
         <Center>
             <Container bg="white" minW='80%'>
@@ -16,6 +14,7 @@ export const BaseCamp = () => {
                             <Tab>キャラクターの作成</Tab>
                             <Tab>パーティーの編成</Tab>
                             <Tab>シナリオ選択</Tab>
+                            <Tab>設定</Tab>
                         </TabList>
                         <TabPanels>
                             <TabPanel>
@@ -26,6 +25,9 @@ export const BaseCamp = () => {
                             </TabPanel>
                             <TabPanel>
                                 <ScenarioSelect />
+                            </TabPanel>
+                            <TabPanel>
+                                <Setting />
                             </TabPanel>
                         </TabPanels>
                     </Tabs>

@@ -22,11 +22,12 @@ import {
     ModalCloseButton, ModalContent, ModalFooter, ModalHeader, ModalOverlay
 } from '@chakra-ui/react';
 
-import { useNavigate } from 'react-router-dom';
 
 import '../Styles/common.scss';
 
 import { Character } from '../Types/common';
+
+import { Firebase } from '../Firebase/Firebase';
 
 interface ParamType {
     typeIndex: number;
@@ -42,8 +43,6 @@ interface Params {
 }
 
 export const CharaCreate = () => {
-    const navigation = useNavigate();
-
     const [name, setName] = useState<string>('');
     const [gender, setGender] = useState<string>('male');
     const [age, setAge] = useState<number>(0);
@@ -182,8 +181,6 @@ export const CharaCreate = () => {
             agi: paramsTypes[paramType.typeIndex].agi,
             skills: [],
         };
-
-        localStorage.setItem(name, JSON.stringify(character));
     };
 
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -210,6 +207,7 @@ export const CharaCreate = () => {
 
     return (
         <Container bg="white">
+            <Firebase />
             <Box>
                 <InputGroup>
                     <InputLeftAddon children="名前" />
