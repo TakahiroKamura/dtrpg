@@ -3,7 +3,7 @@ import { Box, Checkbox, Container, Grid, GridItem, PopoverTrigger } from "@chakr
 import {
     Popover, PopoverArrow, PopoverBody, PopoverCloseButton, PopoverContent, PopoverHeader
 } from '@chakra-ui/react';
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 
 import { Character } from '../Types/common';
 
@@ -15,74 +15,11 @@ interface Check {
 export const EditParty = () => {
     const [checkCount, setCheckCount] = useState<number>(0);
     const [checkManager, setCheckManager] = useState<Check[]>([]);
+    const [characterList, setCharacterList] = useState<Character[]>([]);
 
-    const characterList: Character[] = [
-        {
-            name: '一郎',
-            gender: '男',
-            age: 0,
-            job: '',
-            paramType: '標準',
-            weaponType: '近接',
-            hp: 10,
-            pow: 3,
-            int: 3,
-            agi: 3,
-            skills: [],
-        },
-        {
-            name: '二郎',
-            gender: '男',
-            age: 0,
-            job: '',
-            paramType: '標準',
-            weaponType: '近接',
-            hp: 10,
-            pow: 3,
-            int: 3,
-            agi: 3,
-            skills: [],
-        },
-        {
-            name: '三郎',
-            gender: '男',
-            age: 0,
-            job: '',
-            paramType: '標準',
-            weaponType: '近接',
-            hp: 10,
-            pow: 3,
-            int: 3,
-            agi: 3,
-            skills: [],
-        },
-        {
-            name: '四郎',
-            gender: '男',
-            age: 0,
-            job: '',
-            paramType: '標準',
-            weaponType: '近接',
-            hp: 10,
-            pow: 3,
-            int: 3,
-            agi: 3,
-            skills: [],
-        },
-        {
-            name: '五郎',
-            gender: '男',
-            age: 0,
-            job: '',
-            paramType: '標準',
-            weaponType: '近接',
-            hp: 10,
-            pow: 3,
-            int: 3,
-            agi: 3,
-            skills: [],
-        },
-    ];
+    useEffect(() => {
+
+    }, []);
 
     const onChangeCheck = (e: React.ChangeEvent<HTMLInputElement>) => {
         if ([...checkManager].filter((item) => item.name === e.target.name).length > 0) {
@@ -98,7 +35,7 @@ export const EditParty = () => {
 
     const CharacterDetail = (character: any) => {
         return (
-            <Popover key={character.props.name} trigger="hover">
+            <Popover key={character.props.name} trigger="click">
                 <PopoverTrigger>
                     <p>{character.props.name} {character.props.gender}/{character.props.age}歳 {character.props.paramType}/{character.props.weaponType}</p>
                 </PopoverTrigger>

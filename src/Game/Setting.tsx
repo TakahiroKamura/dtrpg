@@ -1,11 +1,26 @@
 import { Button, Container } from "@chakra-ui/react";
+
+
+import { getAuth, signOut } from "firebase/auth";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 export const Setting = () => {
+    const [showError, setShowError] = useState<boolean>(false);
+
     const navigation = useNavigate();
 
     const onClickLogout = () => {
-        navigation('/');
+        const auth = getAuth();
+        signOut(auth)
+            .then(() => {
+                navigation('/');
+            })
+            .catch(() => {
+                setShowError(true);
+                console.error('サインアウトに失敗しました');
+            })
+            .finally(() => setShowError(true));
     };
 
     return (
