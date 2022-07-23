@@ -1,117 +1,159 @@
+import React, { useState } from "react";
+
+import { useLocation, useNavigate } from "react-router-dom";
+
 import { Button, Container, Text } from "@chakra-ui/react";
 
 import { Input, InputGroup, InputLeftAddon } from "@chakra-ui/react";
 
-import { createUserWithEmailAndPassword, getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { doc, getDoc, setDoc } from 'firebase/firestore';
-import { db } from '../Firebase/setupDatabase';
+import { browserSessionPersistence, createUserWithEmailAndPassword, getAuth, setPersistence, signInWithEmailAndPassword } from 'firebase/auth';
 
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { doc, setDoc } from "firebase/firestore";
 import { Error, ErrorModal } from "../CustomComponents/ErrorModal";
+import { db } from "../Firebase/setupDatabase";
 
+/**
+ * ユーザーの登録・ログインを行うタイトル画面を描画するコンポーネント
+ * @returns {JSX.Element}
+ */
 export const Title = () => {
     const navigation = useNavigate();
+    const location = useLocation();
 
     const [email, setEmail] = useState<string>('');
     const [password, setPassword] = useState<string>('');
     const [error, setError] = useState<Error>({
         header: '',
-        body: (<p></p>),
+        body: [],
+        isInvalidAccess: false,
         isOpen: false,
     });
 
+    /**
+     * 認証用のe-mailアドレスの変更を検知するイベントハンドラ
+     * @param e - 入力された値
+     */
     const onChangeEmail = (e: React.ChangeEvent<HTMLInputElement>) => {
         setEmail(e.target.value);
     };
 
+    /**
+     * 認証用のe-mailアドレスの変更を検知するイベントハンドラ
+     * @param e - 入力された値
+     */
     const onChangePassword = (e: React.ChangeEvent<HTMLInputElement>) => {
         setPassword(e.target.value);
     };
 
+    /**
+     * 新規登録ボタンが押された時の処理
+     * 登録情報に問題がなければユーザー登録し、ページ遷移する
+     * @returns {void}
+     */
     const onClickCreate = async () => {
-
         if (!validateUserInfo()) {
-            setError({
-                header: '新規登録エラー',
-                body: (<><p>メールアドレスまたはパスワードが不正です。</p><p>パスワードは半角英数6桁以上で設定してください。</p></>),
-                isOpen: true,
-            });
             return;
         }
 
-        const docRef = doc(db, "users", email);
-        const docSnap = await getDoc(docRef);
-
-        // 既に存在するメールアドレス
-        if (docSnap.exists()) {
-            setError({
-                header: 'メールアドレス重複エラー',
-                body: (<><p>指定されたメールアドレスは既に使用されています。</p><p>別のメールアドレスを指定してください。</p></>),
-                isOpen: true,
-            });
-            return;
-        }
-
+        // 認証処理
         const auth = getAuth();
-        createUserWithEmailAndPassword(auth, email, password)
-            .then(async () => {
-                await setDoc(doc(db, "users", email), {
-                    id: email,
-                }).then(() => {
-                    navigation('/basecamp');
-                });
+        setPersistence(auth, browserSessionPersistence)
+            .then(() => {
+                createUserWithEmailAndPassword(auth, email, password)
+                    .then(async () => {
+                        await setDoc(doc(db, "users", email), {
+                            id: email,
+                        }).then(() => {
+                            navigation('/basecamp');
+                        });
+                    })
+                    .catch(() => {
+                        setError({
+                            header: '登録エラー',
+                            body: [
+                                'ユーザー登録に失敗しました。',
+                                '入力されたメールアドレスは既に使用されている可能性があります。'
+                            ],
+                            isInvalidAccess: false,
+                            isOpen: true,
+                        });
+                    });
             })
-            .catch(() => {
-                // エラーモーダルを表示
-                setError({
-                    header: '登録エラー',
-                    body: (<><p>ログインに失敗しました。</p><p>メールアドレスとパスワードを確認してください。</p></>),
-                    isOpen: true,
-                });
-            });
+            .catch();
     };
 
+    /**
+     * ログインボタンが押された時の処理
+     * ログイン情報に問題がなければユーザー認証をし、ページ遷移する
+     * @returns {void}
+     */
     const onClickLogin = () => {
         if (!validateUserInfo()) {
-            setError({
-                header: 'バリデーションエラー',
-                body: <p>メールアドレスまたはパスワードが不正です。</p>,
-                isOpen: true,
-            });
             return;
         }
 
+        // 認証処理
         const auth = getAuth();
-        signInWithEmailAndPassword(auth, email, password)
+        setPersistence(auth, browserSessionPersistence)
             .then(() => {
-                navigation('/basecamp');
+                signInWithEmailAndPassword(auth, email, password)
+                    .then(() => {
+                        navigation('/basecamp');
+                    })
+                    .catch(() => {
+                        setError({
+                            header: 'ログインエラー',
+                            body: [
+                                'ログインに失敗しました。',
+                                '入力されたメールアドレスまたはパスワードが不正です。'
+                            ],
+                            isInvalidAccess: false,
+                            isOpen: true,
+                        });
+                    });
             })
-            .catch(() => {
-                setError({
-                    header: '',
-                    body: (<p></p>),
-                    isOpen: true,
-                });
-            });
+            .catch(() => console.error('ERROR'));
     };
 
+    /**
+     * エラーモーダルを閉じる処理
+     * @param {boolean} e - モーダルの状態を指定するboolean型
+     */
     const onCloseErrorModal = (e: boolean) => {
         setError({
             header: '',
-            body: (<p></p>),
+            body: [],
+            isInvalidAccess: false,
             isOpen: e,
         });
     };
 
+    /**
+     * 新規登録・ログイン用のメールアドレスとパスワードの形式をチェックする
+     * エラーの場合はモーダルを表示する
+     * @returns {boolean} - バリデーション結果を返す
+     */
     const validateUserInfo = (): boolean => {
         if (!email.match('[a-zA-Z0-9]+[a-zA-Z0-9\._-]*@[a-zA-Z0-9_-]+[a-zA-Z0-9_-]+')) {
-            // TODO モーダル表示
+            setError({
+                header: 'メールアドレスエラー',
+                body: ['入力されたメールアドレスの形式が不正です。'],
+                isInvalidAccess: false,
+                isOpen: true,
+            });
             return false;
         }
 
         if (password.length < 6) {
-            // TODO モーダル表示
+            setError({
+                header: '入力エラー',
+                body: [
+                    '入力されたパスワードの形式が不正です。',
+                    'パスワードは半角英数6桁以上で設定してください。'
+                ],
+                isInvalidAccess: false,
+                isOpen: true,
+            });
             return false;
         }
 

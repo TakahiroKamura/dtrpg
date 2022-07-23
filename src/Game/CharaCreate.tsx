@@ -27,7 +27,11 @@ import '../Styles/common.scss';
 
 import { Character } from '../Types/common';
 
+import { getAuth } from 'firebase/auth';
+import { doc, setDoc } from 'firebase/firestore';
+import { useNavigate } from 'react-router-dom';
 import { Firebase } from '../Firebase/Firebase';
+import { db } from '../Firebase/setupDatabase';
 
 interface ParamType {
     typeIndex: number;
@@ -43,6 +47,8 @@ interface Params {
 }
 
 export const CharaCreate = () => {
+    const navigation = useNavigate();
+
     const [name, setName] = useState<string>('');
     const [gender, setGender] = useState<string>('male');
     const [age, setAge] = useState<number>(0);
@@ -125,7 +131,6 @@ export const CharaCreate = () => {
 
     // 職業変更時
     const onChangeJob = (e: React.ChangeEvent<HTMLInputElement>) => {
-        console.log(e.target.value);
         setJob(e.target.value);
     };
 
@@ -147,7 +152,7 @@ export const CharaCreate = () => {
     };
 
     // 作成ボタン
-    const onButtonCreate = () => {
+    const onButtonCreate = async () => {
         let passed: boolean = true;
         let message: string[] = [];
         if (name === '') {
@@ -169,6 +174,7 @@ export const CharaCreate = () => {
             return;
         }
         const character: Character = {
+            type: 'character',
             name: name,
             gender: gender,
             age: age,
@@ -181,6 +187,17 @@ export const CharaCreate = () => {
             agi: paramsTypes[paramType.typeIndex].agi,
             skills: [],
         };
+
+        const auth = getAuth();
+        const key: string | null = auth.currentUser?.getIdToken() ? auth.currentUser.email : '';
+        console.log(key);
+
+        if (key) {
+            await setDoc(doc(db, key, character.name), character)
+                .catch((error) => console.error(error));
+        } else {
+            navigation('/error');
+        }
     };
 
     const { isOpen, onOpen, onClose } = useDisclosure();
